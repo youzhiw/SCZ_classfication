@@ -203,9 +203,9 @@ def main():
             print("=> no checkpoint found at '{}'".format(args.resume))
 
     # define dataset dir   IMPORTANT FOR DL COURSE PROJECT STUDENTS: MODIFY THESE PATHS BELOW TO WHERE YOU STORE T1 MRI DATA! 
-    TrainDataDir = '/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
-    ValidationDataDir = '/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
-    TestDataDir = '/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
+    TrainDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification '#'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
+    ValidationDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification' #'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
+    TestDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification' #'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
     # data_fold_list=['fold1','fold11']
     data_fold_list=['fold1','fold2','fold3','fold4','fold5','fold6','fold7','fold8','fold9','fold10']
 
@@ -845,7 +845,8 @@ def test(test_loader, model, criterion, epoch, device, scheduler = None, save_pr
     end = time.time()
 
 
-    test_image_path = '/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset_B_C_M/fold1/MNI152_affine_WB_iso1mm/schiz/MNI152_affine_WB_MNI152_affine_WH_iso1mm_BrainGluSchi_sub-A00003158_ses-20120101_acq-mprage_T1w_echo_raw_WB.nii.gz'
+    test_image_path = '/content/drive/MyDrive/BME Project/Data/SCZ classification/fold1/MNI152_affine_WB_iso1mm/schiz/MNI152_affine_WB_MNI152_affine_WH_iso1mm_BrainGluSchi_sub-A00003158_ses-20120101_acq-mprage_T1w_echo_raw_WB.nii.gz'
+    #test_image_path = '/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset_B_C_M/fold1/MNI152_affine_WB_iso1mm/schiz/MNI152_affine_WB_MNI152_affine_WH_iso1mm_BrainGluSchi_sub-A00003158_ses-20120101_acq-mprage_T1w_echo_raw_WB.nii.gz'
     template = nib.load(test_image_path).get_fdata()     #Joanne
 
 
