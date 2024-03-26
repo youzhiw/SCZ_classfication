@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.utils.multiclass import type_of_target
 from itertools import chain
 
-from trans4dc.models.TransBTS.TransBTS_model import Trans4DC
+#from trans4dc.models.TransBTS.TransBTS_model import Trans4DC
 
 import torch
 from torch import optim
