@@ -215,7 +215,7 @@ class GlobalLocalBrainAge(nn.Module):
         if patch_total_num==0:
             position = []
         else:
-            position = np.zeros((patch_total_num,3),dtype=np.int)
+            position = np.zeros((patch_total_num,3),dtype=np.int64)
         #print('position.shape',position.shape)
 
  #       for z in range(0,D-self.patch_size,self.step): 
