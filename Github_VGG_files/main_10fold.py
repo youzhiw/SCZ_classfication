@@ -203,11 +203,11 @@ def main():
             print("=> no checkpoint found at '{}'".format(args.resume))
 
     # define dataset dir   IMPORTANT FOR DL COURSE PROJECT STUDENTS: MODIFY THESE PATHS BELOW TO WHERE YOU STORE T1 MRI DATA! 
-    TrainDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification'
+    TrainDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification/'
 	#'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
-    ValidationDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification' 
+    ValidationDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification/' 
 	#'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
-    TestDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification' 
+    TestDataDir = '/content/drive/MyDrive/BME Project/Data/SCZ classification/' 
 	#'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
     # data_fold_list=['fold1','fold11']
     data_fold_list=['fold1','fold2','fold3','fold4','fold5','fold6','fold7','fold8','fold9','fold10']
