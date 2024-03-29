@@ -211,7 +211,10 @@ def main():
 	#'/media/sail/HDD10T/DeepC_SCZ-Score/10Fold_Dataset/'
     # data_fold_list=['fold1','fold11']
     data_fold_list=['fold1','fold2','fold3','fold4','fold5','fold6','fold7','fold8','fold9','fold10']
-
+	
+    print("***********************************************")
+    print(TrainDataDir)
+	
     val_index=args.val_folder
     val_list=[val_index]
     print("=> validation folder: ")
