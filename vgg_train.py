@@ -23,8 +23,6 @@ from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
 
 import seaborn as sns
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 class VGG(nn.Module):
     def __init__(self, feature_extractor):
         super(VGG, self).__init__()
@@ -146,7 +144,6 @@ def vgg6_bn():
 
 
 
-model = vgg11_bn()
 
 
 
@@ -206,22 +203,6 @@ class CustomDataset(Dataset):
 
 
 
-root_dir = "/media/youzhi/SSD/bme_project/data"
-folds_dir = [dir for dir in os.listdir(root_dir) if dir.startswith("fold")]
-folds_dir = [os.path.join(root_dir, dir) for dir in folds_dir]
-folds_dir = natsorted(folds_dir)
-
-
-
-dataloaders = []
-for i in range(len(folds_dir)):
-    fold_dir = folds_dir[i]
-    dataset = CustomDataset(fold_dir, downsize_transform) #, downsize_transform)
-    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
-    dataloaders.append(dataloader)
-
-
-
 def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_function, device ):
     net.to(device)
     ret_train_loss = []
@@ -266,37 +247,44 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
 
     return ret_train_loss, ret_valid_loss
 
+if __name__ == '__main__':
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = vgg11_bn()
+    root_dir = "/media/youzhi/SSD/bme_project/data"
+    folds_dir = [dir for dir in os.listdir(root_dir) if dir.startswith("fold")]
+    folds_dir = [os.path.join(root_dir, dir) for dir in folds_dir]
+    folds_dir = natsorted(folds_dir)
 
+    dataloaders = []
+    for i in range(len(folds_dir)):
+        fold_dir = folds_dir[i]
+        dataset = CustomDataset(fold_dir, downsize_transform) #, downsize_transform)
+        dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+        dataloaders.append(dataloader)
+        optimizer = optim.Adam(model.parameters(), lr=1e-5)
+        loss_function = nn.CrossEntropyLoss()
+        check_dir = "/media/youzhi/SSD/bme_project/checkpoints"
+        temp_dir = "/media/youzhi/SSD/bme_project/checkpoints/temp.pth"
+        min_valid_loss = math.inf
+        overall_train_loss = []
+        overall_valid_loss = []
+        torch.save(model.state_dict(), temp_dir)
+        valid_set = dataloaders[1]
+        training_sets = [index for index in range(9)if index != i]
 
-
-optimizer = optim.Adam(model.parameters(), lr=1e-5)
-loss_function = nn.CrossEntropyLoss()
-
-
-
-
-check_dir = "/media/youzhi/SSD/bme_project/checkpoints"
-temp_dir = "/media/youzhi/SSD/bme_project/checkpoints/temp.pth"
-min_valid_loss = math.inf
-overall_train_loss = []
-overall_valid_loss = []
-torch.save(model.state_dict(), temp_dir)
-valid_set = dataloaders[1]
-training_sets = [index for index in range(9)if index != i]
-
-for i in tqdm(range(len(training_sets))):
-    training_set = dataloaders[i]
-    for epoch in tqdm(range(20)):
-        train_loss, valid_loss = train_net(model, 1, training_set, valid_set, optimizer, loss_function, device)
-        if valid_loss[0] < min_valid_loss:
-            min_valid_loss = valid_loss[0]
-            model_filename = f'Epoch_{epoch}_VLoss_{valid_loss[0]:.4f}.pth'
-            model_path = os.path.join(check_dir, model_filename)
-            torch.save(model.state_dict(), model_path)
-        overall_train_loss.append(train_loss)
-        overall_valid_loss.append(valid_loss)
+    for i in tqdm(range(len(training_sets))):
+        training_set = dataloaders[i]
+        for epoch in tqdm(range(20)):
+            train_loss, valid_loss = train_net(model, 1, training_set, valid_set, optimizer, loss_function, device)
+            if valid_loss[0] < min_valid_loss:
+                min_valid_loss = valid_loss[0]
+                model_filename = f'Epoch_{epoch}_VLoss_{valid_loss[0]:.4f}.pth'
+                model_path = os.path.join(check_dir, model_filename)
+                torch.save(model.state_dict(), model_path)
+            overall_train_loss.append(train_loss)
+            overall_valid_loss.append(valid_loss)
         
 
-np.savetxt('training_loss.txt', overall_train_loss)
+    np.savetxt('training_loss.txt', overall_train_loss)
 
-np.savetxt('valid_loss.txt', overall_valid_loss)
+    np.savetxt('valid_loss.txt', overall_valid_loss)
