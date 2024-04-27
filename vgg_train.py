@@ -251,7 +251,7 @@ if __name__ == '__main__':
     model = vgg11_bn()
     # root_dir = "/media/youzhi/SSD/bme_project/data"
     curr_dir = os.getcwd()
-    root_dir = curr_dir
+    root_dir = os.path.join(curr_dir, 'data')
     folds_dir = [dir for dir in os.listdir(root_dir) if dir.startswith("fold")]
     folds_dir = [os.path.join(root_dir, dir) for dir in folds_dir]
     folds_dir = natsorted(folds_dir)
@@ -266,7 +266,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=1e-5)
     loss_function = nn.CrossEntropyLoss()
     # check_dir = "/media/youzhi/SSD/bme_project/checkpoints"
-    check_dir = os.path.join(root_dir, 'checkpoints')
+    check_dir = os.path.join(curr_dir, 'checkpoints')
     if not os.path.exists(check_dir):
         os.makedirs(check_dir)
     min_valid_loss = math.inf
