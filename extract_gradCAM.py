@@ -167,7 +167,7 @@ class CustomDataset(Dataset):
         self.samples, self.labels = self._load_samples()
         self.grad_dir = grad_dir
         self.grad_cn_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/CN")
-        self.grad_scz_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/CN")
+        self.grad_scz_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/schiz")
 
     def _load_samples(self):
         samples = []
