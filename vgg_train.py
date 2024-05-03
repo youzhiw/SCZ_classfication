@@ -89,7 +89,6 @@ class SE_block(nn.Module):
 
 def make_layers(cfg, batch_norm=True, se_block=True):
     layers = []
-    DropoutRate = 0.10
 
     in_channels = 1
 
@@ -250,7 +249,9 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = vgg11_bn()
-    root_dir = "/media/youzhi/SSD/bme_project/data"
+    # root_dir = "/media/youzhi/SSD/bme_project/data"
+    curr_dir = os.getcwd()
+    root_dir = os.path.join(curr_dir, 'data')
     folds_dir = [dir for dir in os.listdir(root_dir) if dir.startswith("fold")]
     folds_dir = [os.path.join(root_dir, dir) for dir in folds_dir]
     folds_dir = natsorted(folds_dir)
@@ -261,20 +262,22 @@ if __name__ == '__main__':
         dataset = CustomDataset(fold_dir, downsize_transform) #, downsize_transform)
         dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
         dataloaders.append(dataloader)
-        optimizer = optim.Adam(model.parameters(), lr=1e-5)
-        loss_function = nn.CrossEntropyLoss()
-        check_dir = "/media/youzhi/SSD/bme_project/checkpoints"
-        temp_dir = "/media/youzhi/SSD/bme_project/checkpoints/temp.pth"
-        min_valid_loss = math.inf
-        overall_train_loss = []
-        overall_valid_loss = []
-        torch.save(model.state_dict(), temp_dir)
-        valid_set = dataloaders[1]
-        training_sets = [index for index in range(9)if index != i]
 
-    for i in tqdm(range(len(training_sets))):
+    optimizer = optim.Adam(model.parameters(), lr=1e-5)
+    loss_function = nn.CrossEntropyLoss()
+    # check_dir = "/media/youzhi/SSD/bme_project/checkpoints"
+    check_dir = os.path.join(curr_dir, 'checkpoints')
+    if not os.path.exists(check_dir):
+        os.makedirs(check_dir)
+    min_valid_loss = math.inf
+    overall_train_loss = []
+    overall_valid_loss = []
+    valid_set = dataloaders[1]
+    training_sets = [index for index in range(9)if index != 1]
+
+    for i in tqdm(training_sets):
         training_set = dataloaders[i]
-        for epoch in tqdm(range(20)):
+        for epoch in (range(20)):
             train_loss, valid_loss = train_net(model, 1, training_set, valid_set, optimizer, loss_function, device)
             if valid_loss[0] < min_valid_loss:
                 min_valid_loss = valid_loss[0]
