@@ -97,11 +97,11 @@ class SwinT(nn.Module):
         super(SwinT, self).__init__()
         self.model1 = swin_t(weights = Swin_T_Weights.IMAGENET1K_V1)
         # self.model1.features[0][0] = nn.Conv2d(9, 96, kernel_size=(4, 4), stride=(4, 4))
-        for param in self.model1.parameters():
-            param.requires_grad = False
-        
-        for param in self.model1.head.parameters():
-            param.requires_grad = True
+        #for param in self.model1.parameters():
+        #    param.requires_grad = False
+        #
+        #for param in self.model1.head.parameters():
+        #    param.requires_grad = True
         self.fc1 = nn.Linear(1000, 2)
     def forward(self, x):
         x = self.model1(x)
@@ -131,7 +131,7 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
 
             train_loss.append(loss.item())
             # print(f'{i + 1}/{len(train_dataloader)}| current training loss: {train_loss[-1]}', end='\r')
-            pbar.set_description(f'current training loss: {train_loss[-1]}')
+            pbar.set_description(f'current training loss: {train_loss[-1]:.4f}')
 
         train_epoch_loss = np.mean(train_loss)
         ret_train_loss.append(train_epoch_loss)
@@ -141,7 +141,8 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
         net.eval()
         valid_loss = []
         with torch.no_grad():
-            for i, (img, label) in enumerate(valid_loader):
+            pbar = tqdm(enumerate(valid_loader), leave=False)
+            for i, (img, label) in pbar:
                 img = img.permute(1, 0, 2, 3).repeat(1,3,1,1)
                 label = label.repeat(15,1)
                 img = img.to(device)
@@ -150,6 +151,7 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
                 loss = loss_function(y_pred, label)
                 valid_loss.append(loss.item())
                 # print(f'{i + 1}/{len(valid_loader)}| current validation loss: {valid_loss[-1]}', end='\r')
+                pbar.set_description(f'current valid loss: {valid_loss[-1]:.4f}')
 
         epoch_vloss = np.mean(valid_loss)
 
@@ -192,9 +194,10 @@ def main():
 
     pbar = tqdm(training_sets)
     for i in pbar:
+        tqdm.write(f"Fold {i+1}")
         pbar.set_description(f"Fold {i+1}")
         training_set = dataloaders[i]
-        inner_pbar = tqdm(range(20))
+        inner_pbar = tqdm(range(20), leave = False)
         for epoch in inner_pbar:
             inner_pbar.set_description(f"Epoch {epoch+1}")
             train_loss, valid_loss = train_net(model, 1, training_set, valid_set, optimizer, loss_function, device)
@@ -206,11 +209,16 @@ def main():
                 torch.save(model.state_dict(), model_path)
             overall_train_loss.append(train_loss)
             overall_valid_loss.append(valid_loss)
+            with open("transformer_training_loss.txt", "a") as file:
+                file.write(str(train_loss) + '\n')
+
+            with open("transformer_validation_loss.txt", "a") as file:
+                file.write(str(valid_loss) + '\n')
         
 
-    np.savetxt('training_loss.txt', overall_train_loss)
+    #np.savetxt('training_loss.txt', overall_train_loss)
 
-    np.savetxt('valid_loss.txt', overall_valid_loss)
+    #np.savetxt('valid_loss.txt', overall_valid_loss)
 
 if __name__ == '__main__':
     main()
