@@ -32,10 +32,17 @@ def downsize_transform(data):
 
     return downsampled.squeeze(0).squeeze(0)
 
-def naive_sample(images):
-    means = [np.mean(img) for img in images]
+def get_k_significant(grads, axis):
+
+    if axis == "x":
+        continue
+    else if axis == "y":
+        grads = grads.permute(1, 0, 2)
+    else:
+        grads = grads.permute(3, 1, 2)
+    means = [np.mean(img) for img in grads]
     non_zero_indices = np.nonzero(means)
-    #mode = np.argmax(means)
+
     mini = np.min(non_zero_indices)
     maxi = np.max(non_zero_indices) 
     adj = (maxi-mini) / 4
@@ -82,13 +89,14 @@ class TransformerDataset(Dataset):
 
         # Load the NIfTI image
         img = nib.load(file_path)
+        grads = nib.load(grad_path)
 
         # Get the image data array
         img_data = np.float32(img.get_fdata())
-        test_img = naive_sample(img_data)
+        slices = get_k_significant(grads, "x")
         img_data = self.transforms(img_data)
 
-        x_slices = img_data[test_img, :, :]
+        x_slices = img_data[slices, :, :]
         return x_slices, label
 
 
