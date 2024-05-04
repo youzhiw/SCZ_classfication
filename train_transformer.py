@@ -20,7 +20,7 @@ import nibabel as nib
 from tqdm import tqdm
 import cv2
 import torch.nn.functional as F
-from torchvision.models import swin_t, Swin_T_Weights
+from torchvision.models import swin_b, Swin_B_Weights
 
 def downsize_transform(data): 
     target_size = (224, 224, 224)
