@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms, datasets
 import nibabel as nib
 from torchvision.transforms import functional as F
+import torchio as tio
 from natsort import natsorted
 from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
 
@@ -157,22 +158,26 @@ def downsize_transform(data):
 
 
 
+def get_tio_transforms():
+    return tio.Compose([
+        tio.RandomNoise(p=0.05),  # Apply Gaussian noise with a probability of 5%
+        tio.RandomAffine(p=0.05), # Random affine transformations with a probability of 5%
+    ])
+
 class CustomDataset(Dataset):
-    def __init__(self, root_dir, transforms = None):
+    def __init__(self, root_dir, transforms=None):
         self.root_dir = root_dir
-        self.transforms = transforms
+        self.transforms = transforms or get_tio_transforms()
         self.cn_dir = os.path.join(self.root_dir, "MNI152_affine_WB_iso1mm/CN")
         self.scz_dir = os.path.join(self.root_dir, "MNI152_affine_WB_iso1mm/schiz")
         self.samples, self.labels = self._load_samples()
 
     def _load_samples(self):
         samples = []
-        
         samples = [file for file in os.listdir(self.cn_dir) if file.endswith(".nii.gz")]
         labels = [0] * len(samples)
         samples += [file for file in os.listdir(self.scz_dir) if file.endswith(".nii.gz")]
         labels += [1] * (len(samples) - len(labels))
-
         return samples, labels
 
     def __len__(self):
@@ -180,26 +185,20 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         label = self.labels[idx]
-        if label == 0:
-            file_path = os.path.join(self.cn_dir, self.samples[idx])
-        else:
-            file_path = os.path.join(self.scz_dir, self.samples[idx])
+        file_path = os.path.join(self.cn_dir if label == 0 else self.scz_dir, self.samples[idx])
         one_hot_label = torch.zeros(2)
         one_hot_label[label] = 1
         label = one_hot_label
 
-        # Load the NIfTI image
         img = nib.load(file_path)
-
-        # Get the image data array
         img_data = np.float32(img.get_fdata())[0:192, :, 0:192]
+
         if self.transforms:
-            img_tensor = self.transforms(img_data)
+            img_data = self.transforms(img_data)
         else:
-            img_tensor = torch.from_numpy(img_data).unsqueeze(0)
-        return img_tensor, label
+            img_data = torch.from_numpy(img_data).unsqueeze(0)
 
-
+        return img_data, label
 
 
 def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_function, device ):
