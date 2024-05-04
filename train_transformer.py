@@ -196,7 +196,7 @@ def main():
         fold_dir = folds_dir[i]
         grad_dir = grads_dir[i]
         dataset = TransformerDataset(fold_dir, grad_dir, downsize_transform) #, downsize_transform)
-        dataloader = DataLoader(dataset, batch_size=8, shuffle=False)
+        dataloader = DataLoader(dataset, batch_size=6, shuffle=False)
         dataloaders.append(dataloader)
 
     model = SwinT()
