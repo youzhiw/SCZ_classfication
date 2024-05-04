@@ -112,7 +112,7 @@ class TransformerDataset(Dataset):
 class SwinT(nn.Module):
     def __init__(self):
         super(SwinT, self).__init__()
-        self.model1 = swin_t(weights = Swin_T_Weights.IMAGENET1K_V1)
+        self.model1 = swin_b(weights = Swin_B_Weights.IMAGENET1K_V1)
         # self.model1.features[0][0] = nn.Conv2d(9, 96, kernel_size=(4, 4), stride=(4, 4))
         #for param in self.model1.parameters():
         #    param.requires_grad = False
