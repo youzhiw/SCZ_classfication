@@ -32,13 +32,22 @@ def downsize_transform(data):
 
     return downsampled.squeeze(0).squeeze(0)
 
+def naive_sample(images):
+    means = [np.mean(img) for img in images]
+    non_zero_indices = np.nonzero(means)
+    #mode = np.argmax(means)
+    mini = np.min(non_zero_indices)
+    maxi = np.max(non_zero_indices) 
+    adj = (maxi-mini) / 4
+    mini_adj = np.min(non_zero_indices) + adj
+    maxi_adj = np.max(non_zero_indices) - adj
+    return np.linspace(mini_adj, maxi_adj, 15, dtype=int)
+
 def get_k_significant(grads, axis):
 
-    if axis == "x":
-        continue
-    else if axis == "y":
+    if axis == "y":
         grads = grads.permute(1, 0, 2)
-    else:
+    elif axis == "z":
         grads = grads.permute(3, 1, 2)
     means = [np.mean(img) for img in grads]
     non_zero_indices = np.nonzero(means)
@@ -89,15 +98,15 @@ class TransformerDataset(Dataset):
 
         # Load the NIfTI image
         img = nib.load(file_path)
-        grads = nib.load(grad_path)
+        #grads = nib.load(grad_path)
 
         # Get the image data array
         img_data = np.float32(img.get_fdata())
-        slices = get_k_significant(grads, "x")
+        slices = naive_sample(img_data)
         img_data = self.transforms(img_data)
 
-        x_slices = img_data[slices, :, :]
-        return x_slices, label
+        z_slices = img_data[:, :, slices].permute(2, 0, 1)
+        return z_slices, label
 
 
 class SwinT(nn.Module):
@@ -217,10 +226,10 @@ def main():
                 torch.save(model.state_dict(), model_path)
             overall_train_loss.append(train_loss)
             overall_valid_loss.append(valid_loss)
-            with open("transformer_training_loss.txt", "a") as file:
+            with open("transformer_training_lossV30.txt", "a") as file:
                 file.write(str(train_loss) + '\n')
 
-            with open("transformer_validation_loss.txt", "a") as file:
+            with open("transformer_validation_lossV30.txt", "a") as file:
                 file.write(str(valid_loss) + '\n')
         
 
