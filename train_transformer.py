@@ -6,15 +6,12 @@ import math
 import numpy as np
 import os
 from natsort import natsorted
-import matplotlib.pyplot as plt
 from torch import optim
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim
 from torch.nn.utils import clip_grad_value_
 from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import Dataset, DataLoader
 from collections import OrderedDict
 from scipy.ndimage import zoom
@@ -43,7 +40,24 @@ def naive_sample(images):
     maxi_adj = np.max(non_zero_indices) - adj
     return np.linspace(mini_adj, maxi_adj, 15, dtype=int)
 
+def get_k_significant(grads, axis):
+
+    if axis == "y":
+        grads = grads.permute(1, 0, 2)
+    elif axis == "z":
+        grads = grads.permute(3, 1, 2)
+    means = [np.mean(img) for img in grads]
+    non_zero_indices = np.nonzero(means)
+
+    mini = np.min(non_zero_indices)
+    maxi = np.max(non_zero_indices)
+    adj = (maxi-mini) / 4
+    mini_adj = np.min(non_zero_indices) + adj
+    maxi_adj = np.max(non_zero_indices) - adj
+    return np.linspace(mini_adj, maxi_adj, 15, dtype=int)
+
 class TransformerDataset(Dataset):
+
     def __init__(self, img_dir, grad_dir, transforms = None):
         self.img_dir = img_dir
         self.grad_dir = grad_dir
@@ -51,7 +65,9 @@ class TransformerDataset(Dataset):
         self.cn_dir = os.path.join(self.img_dir, "MNI152_affine_WB_iso1mm/CN")
         self.scz_dir = os.path.join(self.img_dir, "MNI152_affine_WB_iso1mm/schiz")
         self.grad_cn_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/CN")
-        self.grad_scz_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/CN") # change this later when rerun the extract grad script
+
+        # change this later when rerun the extract grad script
+        self.grad_scz_dir = os.path.join(self.grad_dir, "MNI152_affine_WB_iso1mm/schiz")
         self.samples, self.labels = self._load_samples()
 
     def _load_samples(self):
@@ -82,14 +98,15 @@ class TransformerDataset(Dataset):
 
         # Load the NIfTI image
         img = nib.load(file_path)
+        #grads = nib.load(grad_path)
 
         # Get the image data array
         img_data = np.float32(img.get_fdata())
-        test_img = naive_sample(img_data)
+        slices = naive_sample(img_data)
         img_data = self.transforms(img_data)
 
-        x_slices = img_data[test_img, :, :]
-        return x_slices, label
+        z_slices = img_data[:, :, slices].permute(2, 0, 1)
+        return z_slices, label
 
 
 class SwinT(nn.Module):
@@ -119,9 +136,11 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
         train_loss = []
         pbar = tqdm(enumerate(train_dataloader), leave=False)
         for i, (img, label) in pbar:
-            img = img.permute(1, 0, 2, 3).repeat(1,3,1,1)
-            label = label.repeat(15,1)
-            img= img.to(device)
+            batch_shape = img.shape[1]
+            img = img.view(-1, 224, 224)
+            img = img.unsqueeze(1).repeat(1, 3, 1, 1)
+            label = torch.repeat_interleave(label, batch_shape, dim=0)
+            img = img.to(device)
             label = label.to(device)
             optimizer.zero_grad()
             y_pred = net(img)
@@ -143,8 +162,10 @@ def train_net(net, epochs, train_dataloader, valid_loader, optimizer, loss_funct
         with torch.no_grad():
             pbar = tqdm(enumerate(valid_loader), leave=False)
             for i, (img, label) in pbar:
-                img = img.permute(1, 0, 2, 3).repeat(1,3,1,1)
-                label = label.repeat(15,1)
+                batch_shape = img.shape[1]
+                img = img.view(-1, 224, 224)
+                img = img.unsqueeze(1).repeat(1, 3, 1, 1)
+                label = torch.repeat_interleave(label, batch_shape, dim=0)
                 img = img.to(device)
                 label = label.to(device)
                 y_pred = net(img)
@@ -175,7 +196,7 @@ def main():
         fold_dir = folds_dir[i]
         grad_dir = grads_dir[i]
         dataset = TransformerDataset(fold_dir, grad_dir, downsize_transform) #, downsize_transform)
-        dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+        dataloader = DataLoader(dataset, batch_size=8, shuffle=False)
         dataloaders.append(dataloader)
 
     model = SwinT()
@@ -209,10 +230,10 @@ def main():
                 torch.save(model.state_dict(), model_path)
             overall_train_loss.append(train_loss)
             overall_valid_loss.append(valid_loss)
-            with open("transformer_training_loss.txt", "a") as file:
+            with open("transformer_training_lossVb.txt", "a") as file:
                 file.write(str(train_loss) + '\n')
 
-            with open("transformer_validation_loss.txt", "a") as file:
+            with open("transformer_validation_lossVb.txt", "a") as file:
                 file.write(str(valid_loss) + '\n')
         
 

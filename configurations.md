@@ -1,0 +1,12 @@
+## different configurations of transformer training:
+- training with using the most significant slices from each orientation
+- inputting 3 most significant slices from each direction into 9 channels for the transformer
+- training on the middle 15 slices from each orientation
+- training on the middle 20 slices from each orientation
+- training on the middle 30 slices from each orientation
+- freezing all the transformer layers except the last linear layer
+- unfreezing all the transformer layers
+- tried learning rates of 1e-4, 1e-5, 1e-6
+- tried batch sizes of 1 image to 8 images
+- switching to no pretrained weight
+- using the Swin B transformer model, initially used Swin T model

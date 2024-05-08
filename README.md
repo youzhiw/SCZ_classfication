@@ -1,7 +1,7 @@
-# SCZ_classfication
+# SCZ_classfication 
 
-to run the scripts first run vgg_train.py
-
-then run extract_gradCAM.py, but you need to change the directory for the best model to load
-
-then run train_transformer.py
+Order of scripts to run:
+- the data of the MRI images shoud be in a folder called 'data'
+1. vgg_train.py
+2. extract_gradCAM.py
+3. train_transformer.py

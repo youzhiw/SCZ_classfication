@@ -276,11 +276,14 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    root_dir = "/media/youzhi/SSD/bme_project/data"
-    root_grad_dir = "/media/youzhi/SSD/bme_project/activations"
+    curr_dir = os.getcwd()
+    root_dir = os.path.join(curr_dir, 'data')
+    grad_root_dir = os.path.join(curr_dir, 'activations')
+    if not os.path.exists(grad_root_dir):
+        os.makedirs(grad_root_dir)
 
     folds_dir = [dir for dir in os.listdir(root_dir) if dir.startswith("fold")]
-    grads_dir = [os.path.join(root_grad_dir, dir) for dir in folds_dir]
+    grads_dir = [os.path.join(grad_root_dir, dir) for dir in folds_dir]
     folds_dir = [os.path.join(root_dir, dir) for dir in folds_dir]
 
     folds_dir = natsorted(folds_dir)
@@ -288,7 +291,7 @@ def main():
     grads_dir = natsorted(grads_dir)
     
     model = vgg11_bn()
-    state_dict = torch.load('/media/youzhi/SSD/bme_project/checkpoints/Epoch_28_VLoss_0.0211.pth')
+    state_dict = torch.load(os.path.join(curr_dir, 'checkpt0.1.pth'))
     model.load_state_dict(state_dict)
 
     datasets = []
