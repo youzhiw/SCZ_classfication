@@ -6,6 +6,9 @@ Once the significant MRI slices were identified, they were fed into a SWIN Trans
 
 One of the key insights from this project was the importance of maintaining context in 3D MRI data. By relying on 2D slices, we may have missed critical spatial relationships inherent in 3D scans, limiting the model’s ability to fully comprehend the complexity of schizophrenia. Additionally, the Grad-CAM method, while useful for interpretability, may not have selected the most diagnostically relevant slices, further complicating the training of the SWIN Transformer. Another notable issue was the limitation of pretraining the SWIN model on non-medical images, which may have failed to capture the subtle features specific to brain MRIs.
 
+You can find our final report here: https://github.com/youzhiw/SCZ_classfication/blob/main/BMI_Final_Report.pdf
+
+
 Order of scripts to run:
 - the data of the MRI images shoud be in a folder called 'data'
 1. vgg_train.py
